@@ -19,7 +19,7 @@ public class VideoCache {
            cacheTable.put(videos,latency);
     }
 
-    public void computeCacheTable(){
+    public ArrayList<Integer> computeCacheTable(){
             int sum=0;
             LinkedHashMap<Integer,Integer> sortedMap = sortHashMapByValues(cacheTable);
             Iterator sortedMapIterator = sortedMap.entrySet().iterator();
@@ -30,6 +30,7 @@ public class VideoCache {
                     videos.add((int)pair.getKey());
                 }
             }
+            return videos;
     }
 
     private LinkedHashMap<Integer, Integer> sortHashMapByValues(
