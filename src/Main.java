@@ -1,5 +1,4 @@
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,36 +8,38 @@ import java.util.Map;
 public class Main {
 
     public static void main(String[] args) {
+        String line;
+        int lineNb = 0;
+
+        int videoNb = 0;
+        int endpointNb = 0;
+        int requests = 0;
+        int cachesNb = 0;
+        int cacheSize = 0;
+
+        int endpointCachesNb = 0;
+
+        // map for the videos (video numebr, size of video)
+        HashMap<Integer, Integer> videosMap = new HashMap<Integer, Integer>();
+
+        // map for the endpoint latencies (destination, latency)
+        HashMap<Integer, Integer> endpointLatencies = new HashMap<Integer, Integer>();
+
+        // list that stores latency hashmap of each endpoint
+        List<HashMap<Integer,Integer>> endpointLatenciesList = new ArrayList<HashMap<Integer,Integer>>();
+
+        // map for the endpoint requests (video, nb requests)
+        HashMap<Integer, Integer> endpointRequests = new HashMap<Integer, Integer>();
+
+        // list that stores endpoint requests
+        HashMap<Integer, HashMap<Integer, Integer>> endpointRequestsList = new HashMap<Integer, HashMap<Integer, Integer>>();
+
+        int[] intArray;
+
         String filename = "src/kittens.in";
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filename));
-            String line;
-            int lineNb = 0;
 
-            int videoNb = 0;
-            int endpointNb = 0;
-            int requests = 0;
-            int cachesNb = 0;
-            int cacheSize = 0;
-
-            int endpointCachesNb = 0;
-
-            // map for the videos (video numebr, size of video)
-            HashMap<Integer, Integer> videosMap = new HashMap<Integer, Integer>();
-
-            // map for the endpoint latencies (destination, latency)
-            HashMap<Integer, Integer> endpointLatencies = new HashMap<Integer, Integer>();
-
-            // list that stores latency hashmap of each endpoint
-            List<HashMap<Integer,Integer>> endpointLatenciesList = new ArrayList<HashMap<Integer,Integer>>();
-
-            // map for the endpoint requests (video, nb requests)
-            HashMap<Integer, Integer> endpointRequests = new HashMap<Integer, Integer>();
-
-            // list that stores endpoint requests
-            HashMap<Integer, HashMap<Integer, Integer>> endpointRequestsList = new HashMap<Integer, HashMap<Integer, Integer>>();
-
-            int[] intArray;
             while ((line = reader.readLine()) != null) {
 
                 // read the line and parse it to an int array
@@ -96,18 +97,60 @@ public class Main {
             }
             reader.close();
 
-            for (Map.Entry<Integer, HashMap<Integer, Integer>> entry : endpointRequestsList.entrySet()) {
-                Integer key = entry.getKey();
-                HashMap<Integer, Integer> value = entry.getValue();
 
-                System.out.println(key);
-                System.out.println(value);
-                System.out.println("------------");
-            }
         }
         catch (Exception e) {
             System.err.format("Exception occurred trying to read '%s'.", filename);
             e.printStackTrace();
+        }
+
+        // list of VideoCaches
+        List<VideoCache> videoCachesList = new ArrayList<VideoCache>();
+
+        for(int i=0;i<cachesNb; i++) {
+            videoCachesList.add(new VideoCache(i,cacheSize, videosMap));
+        }
+
+        List<EndPoint> endpointList = new ArrayList<EndPoint>();
+        // list of the endpoints
+        HashMap<VideoCache,Integer> epLatencies = new HashMap<>();
+
+        for(int i=0;i<endpointNb; i++) {
+            HashMap<Integer, Integer> epl = endpointLatenciesList.get(i);
+
+            for(Map.Entry<Integer, Integer> entry : epl.entrySet()) {
+                Integer key = entry.getKey();
+                Integer value = entry.getValue();
+
+                VideoCache v = videoCachesList.get(key);
+                epLatencies = new HashMap<VideoCache,Integer>();
+
+                epLatencies.put(v, value);
+            }
+
+            endpointList.add(new EndPoint(epLatencies, endpointRequestsList.get(i), i));
+        }
+
+        for(int i=0;i<endpointList.size();i++) {
+            endpointList.get(i).calculateBestLatency();
+        }
+        ArrayList<Integer> vidz = new ArrayList<Integer>();
+        HashMap<Integer, Integer> hmp = new HashMap<Integer, Integer>();
+
+        for (int i=0; i<videoCachesList.size();i++) {
+            vidz = videoCachesList.get(i).computeCacheTable();
+            for (int j=0; j<vidz.size(); j++) {
+                hmp.put(i, vidz.get(j));
+            }
+        }
+
+        for (Map.Entry<Integer, Integer> entry : hmp.entrySet()) {
+            Integer key = entry.getKey();
+            Integer value = entry.getValue();
+
+            System.out.println(key);
+            System.out.println(value);
+            System.out.println("------------");
         }
     }
 
