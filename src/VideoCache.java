@@ -8,9 +8,11 @@ public class VideoCache {
     private int cacheLimit;
     private ArrayList<Integer> videos=new ArrayList<Integer>();
     private HashMap<Integer,Integer> cacheTable = new HashMap<Integer,Integer>();
-    public VideoCache(int id, int cacheLimit){
+    private HashMap<Integer,Integer> videoSize;
+    public VideoCache(int id, int cacheLimit,HashMap<Integer,Integer> videoSize){
         this.id=id;
         this.cacheLimit=cacheLimit;
+        this.videoSize=videoSize;
     }
 
     public void PopulateCacheTable(int videos,int latency){
@@ -24,7 +26,7 @@ public class VideoCache {
             while(sortedMapIterator.hasNext()){
                 HashMap.Entry pair = (HashMap.Entry)sortedMapIterator.next();
                 if(sum<cacheLimit){
-                    sum+=(int)pair.getValue();
+                    sum+=videoSize.get(pair.getKey());
                     videos.add((int)pair.getKey());
                 }
             }
